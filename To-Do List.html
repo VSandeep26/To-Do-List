@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>To-Do List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      form {
+        display: flex;
+        margin-bottom: 20px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+      }
+
+      button[type="submit"] {
+        padding: 10px;
+        font-size: 16px;
+        background-color: #03AC4A;
+        color: white;
+      }
+
+      button[type="submit"]:hover {
+         background-color: #3e8e41; 
+      }
+
+      .task-list {
+         list-style: none;
+         padding: 0;
+      }
+
+      .task-list li {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         padding: 10px;
+         border-bottom: 1px solid #ccc;
+      }
+
+      .task-list li:last-child {
+         border-bottom: none;
+      }
+
+      .task-list li .task {
+         flex: 1;
+      }
+
+      .task-list li .actions {
+         display: flex;
+         align-items: center;
+      }
+
+      .task-list li .actions button {
+         margin-left: 10px;
+         padding: 5px;
+         font-size: 14px;
+         background-color: #2874A6;
+         color: white;
+      }
+
+      .task-list li .actions button:hover {
+         background-color: #2874A6;
+      }
+
+      .task-list li.completed .task {
+         text-decoration: line-through;
+         color:#999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>To-Do List</h1>
+      <form id="task-form">
+        <input type="text" placeholder="Add new task">
+        <button type="submit">Add</button>
+      </form>
+      <ul class="task-list">
+      </ul>
+    </div>
+    <script>
+      const form = document.getElementById('task-form');
+      const taskList = document.querySelector('.task-list');
+
+      let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+      renderTasks();
+
+      form.addEventListener('submit', addTask);
+
+      function addTask(event) {
+        event.preventDefault();
+        const input = event.target.querySelector('input[type="text"]');
+        const task = {
+          id: Date.now(),
+          text: input.value,
+          completed: false
+        };
+        tasks.push(task);
+        input.value = '';
+        renderTasks();
+        saveTasks();
+      }
+
+      function renderTasks() {
+        taskList.innerHTML = '';
+        tasks.forEach(task => {
+          const li = document.createElement('li');
+          li.classList.add('task');
+          if (task.completed) {
+            li.classList.add('completed');
+          }
+          li.innerHTML = `
+            <span>${task.text}</span>
+            <div class="actions">
+              <button class="complete-btn">${task.completed ? 'Uncomplete' : 'Complete'}</button>
+              <button class="edit-btn">Edit</button>
+              <button class="delete-btn">Delete</button>
+            </div>
+          `;
+          const completeBtn = li.querySelector('.complete-btn');
+          const editBtn = li.querySelector('.edit-btn');
+          const deleteBtn = li.querySelector('.delete-btn');
+          completeBtn.addEventListener('click', () => {
+            task.completed = !task.completed;
+            renderTasks();
+            saveTasks();
+          });
+          editBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = task.text;
+            li.replaceChild(input, li.querySelector('span'));
+            input.addEventListener('blur', () => {
+              task.text = input.value;
+              renderTasks();
+              saveTasks();
+            });
+          });
+          deleteBtn.addEventListener('click', () => {
+            tasks = tasks.filter(t => t.id !== task.id);
+            renderTasks();
+            saveTasks();
+          });
+          taskList.appendChild(li);
+        });
+      }
+
+      function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    </script>
+  </body>
+</html>
